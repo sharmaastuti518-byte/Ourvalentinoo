@@ -1,0 +1,317 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#ff4d6d">
+<title>For You ❤️</title>
+<style>
+    body {
+        margin: 0;
+        font-family: 'Arial', sans-serif;
+        background: #fff0f5;
+        color: #333;
+        overflow: auto;
+    }
+    .screen {
+        display: none;
+        height: 100vh;
+        width: 100vw;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+    .active {
+        display: flex;
+    }
+    .heart {
+        font-size: 80px;
+        cursor: pointer;
+        animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+        100% { transform: scale(1); }
+    }
+    button {
+        padding: 12px 22px;
+        margin: 10px;
+        border: none;
+        border-radius: 25px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    .primary {
+        background: #ff4d6d;
+        color: white;
+    }
+    .secondary {
+        background: #ffd6de;
+    }
+    .option {
+        display: block;
+        margin: 8px auto;
+        background: white;
+        border-radius: 20px;
+    }
+    .photo-bg {
+    background: linear-gradient(
+        135deg,
+        #ffb3c6,
+        #ff8fab,
+        #ffc2d1
+    );
+    color: #7a1c3a;
+}
+    .gift {
+        font-size: 70px;
+        cursor: pointer;
+    }
+      #confetti {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999;
+}
+</style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+
+<!-- SCREEN 1 -->
+<div class="screen active" id="loader">
+    <div class="heart">❤️</div>
+    <p id="loadText">Loading love… 0%</p>
+</div>
+
+<!-- SCREEN 2 -->
+<div class="screen" id="menu">
+    <h2>Before you go further…</h2>
+    <p>Let’s see how well you know your girlfriend.</p>
+    <button class="primary" onclick="startQuiz()">Start</button>
+</div>
+
+<!-- SCREEN 3 -->
+<div class="screen" id="quiz">
+    <h3 id="question"></h3>
+    <div id="options"></div>
+    <p id="feedback"></p>
+</div>
+
+<!-- SCREEN 4 -->
+<div class="screen" id="valentine">
+    <h2>Will you be my Valentine? 💌</h2>
+    <button class="primary" onclick="yesClicked()">Yes ❤️</button>
+    <button class="secondary" id="noBtn">No 😏</button>
+    <p id="noText"></p>
+</div>
+
+<!-- SCREEN 5 -->
+<div class="screen photo-bg" id="yesScreen">
+    <h1>Yay,you said yes!! 🥹❤️</h1>
+    <p>Same distance. Same us. Still choosing you</p>
+    <button class="primary" onclick="showGift()">Open your gift 🎁</button>
+</div>
+
+<!-- SCREEN 6 -->
+<div class="screen" id="giftScreen">
+    <div class="gift" onclick="finalMessage()">🎁</div>
+</div>
+
+<!-- SCREEN 7 -->
+<div class="screen" id="final">
+    <h1>I love you so much, jaanu ❤️</h1>
+  <button class="secondary" onclick="location.reload()">Replay 😌</button>
+</div>
+
+<script>
+let load = 0;
+const heart = document.querySelector('.heart');
+const loadText = document.getElementById('loadText');
+
+heart.onclick = () => {
+    load += 7;
+    if (load >= 100) {
+        load = 100;
+        switchScreen('loader', 'menu');
+    }
+    loadText.innerText = `Loading love… ${load}%`;
+};
+
+function switchScreen(from, to) {
+    document.getElementById(from).classList.remove('active');
+    document.getElementById(to).classList.add('active');
+}
+
+/* QUIZ DATA */
+const quiz = [
+{
+q: "Last Valentine’s, I sent you roses. How many were they?",
+o: ["3","2","1","I forgot, but I still love you"],
+a: 0
+},
+{
+q: "What was our exact McDonald’s order when we first met?",
+o: [
+"2 burgers, 2 fries and a McFlurry",
+"2 burgers, 1 fries and a McFlurry",
+"2 burgers, 1 fries, a McFlurry and a coke",
+"2 burgers, 2 fries, a McFlurry and a coke"
+],
+a: 3
+},
+{
+q: "What was the occasion when you first Zomato-ed me triopastry?",
+o: [
+"I was angry at you",
+"You just wanted to",
+"I was on my periods",
+"I suddenly mentioned craving it"
+],
+a: 2
+},
+{
+q: "How many bras do I have and which one did I wear on our first meet?",
+o: ["2, pink","3, pink","4, beige","1, black"],
+a: 1
+},
+{
+q: "what was the sentence you said the most when we had ‘it’?",
+o: [
+"Oh yeah baby",
+"Oh yeah I love you so much",
+"Oh yeah, you liking it?",
+"Oh yeah baby I want to boom you harder and gasping in my ears"
+],
+a: -1 // all wrong on purpose
+},
+{
+q: "Will we make this work? And then tell our kids story during their bed time that how mom and dad did long distance for years? And how hot their mom was/is? And how much she loved their dad? And how much boom they had on peer vi tu?",
+o: [
+"Yes",
+"Of course",
+"Calling you asap",
+"I'm marrying you tomorrow"
+],
+a: 3
+}
+];
+
+let current = 0;
+
+function startQuiz() {
+    switchScreen('menu', 'quiz');
+    showQuestion();
+}
+
+function showQuestion() {
+    const q = quiz[current];
+    document.getElementById('question').innerText = q.q;
+    const optionsDiv = document.getElementById('options');
+    optionsDiv.innerHTML = "";
+    document.getElementById('feedback').innerText = "";
+
+    q.o.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = "option";
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(i);
+        optionsDiv.appendChild(btn);
+    });
+}
+
+function checkAnswer(i) {
+    const q = quiz[current];
+    const feedback = document.getElementById('feedback');
+
+    if (q.a === -1) {
+        feedback.innerText = "Wrong 😌\nCorrect answer: all of these, you honii baby.";
+    } else if (i === q.a) {
+        feedback.innerText = "Okay fine… you know me.";
+    } else {
+        feedback.innerText = "Wrong. Try harder, sir.";
+        return;
+    }
+
+    setTimeout(() => {
+        current++;
+        if (current < quiz.length) {
+            showQuestion();
+        } else {
+            switchScreen('quiz', 'valentine');
+        }
+    }, 1200);
+}
+const canvas = document.getElementById("confetti");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let confettiPieces = [];
+
+function createConfetti() {
+    confettiPieces = Array.from({ length: 120 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        r: Math.random() * 6 + 2,
+        speed: Math.random() * 5 + 2,
+        color: `hsl(${Math.random() * 360}, 70%, 70%)`
+    }));
+}
+
+function drawConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confettiPieces.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        p.y += p.speed;
+    });
+}
+/* NO BUTTON CHAOS */
+const noBtn = document.getElementById('noBtn');
+const noText = document.getElementById('noText');
+const roasts = [
+    "Nice try.",
+    "That button is decorative.",
+    "Bold of you to think that’s an option.",
+    "Wrong answer detected."
+];
+
+noBtn.onclick = () => {
+    noBtn.style.position = "absolute";
+    noBtn.style.left = Math.random() * 60 + "%";
+    noBtn.style.top = Math.random() * 60 + "%";
+    noText.innerText = roasts[Math.floor(Math.random() * roasts.length)];
+};
+
+function yesClicked() {
+    switchScreen('valentine', 'yesScreen');
+  confettiPieces = [];
+  createConfetti();
+
+    const confettiInterval = setInterval(drawConfetti, 20);
+
+    setTimeout(() => {
+        clearInterval(confettiInterval);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }, 2000);
+}
+
+function showGift() {
+    switchScreen('yesScreen', 'giftScreen');
+}
+
+function finalMessage() {
+    switchScreen('giftScreen', 'final');
+}
+</script>
+  
+<canvas id="confetti"></canvas>
+</body>
+</html>
